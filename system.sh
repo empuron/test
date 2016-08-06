@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 @test "Java von Oracle" {
-	run java -version
-	[[ ${lines[0]} =~ "java version" ]]
+  run java -version
+  [[ ${lines[0]} =~ "java version" ]]
 }
 
 @test "Java 7 installiert" {
@@ -11,6 +11,6 @@
 }
 
 @test "Postgres 9.2 vorhanden" {
-	run psql --version
-	[[ ${lines[0]} =~ "9.2" ]]
+  run psql --version
+  [[ ${lines[0]} =~ "9.2" ]]
 }
