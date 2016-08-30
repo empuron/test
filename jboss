@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# jboss        Startup script for JBoss Server
+#
+# chkconfig: 345 95 15
+# description: Jboss
+# processname: jboss
+#set -x
+#host="127.0.0.1"
+host="0.0.0.0"
+server="demo"
+port="ports-03"
+USER=empuron
+hornetq_remoting_netty_host=localhost
+hornetq_remoting_netty_port=7445
+hornetq_remoting_netty_batch_port=7455
+
+cd `dirname $0`
+RUN_DIR=`pwd`
+
+
+
+start() {
+        echo -n $"Starting $prog: "
+	export JAVA_OPTS="-Xms3072m -Xmx4096m -XX:MaxPermSize=256m -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -Djava.naming.provider.url=jnp://$host:1399 -Djava.rmi.server.hostname=$host -Dcom.empuron.serverId=$server -verbose:gc -Djava.awt.headless=true"
+	export JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n"
+        export JAVA_OPTS="$JAVA_OPTS -Dhornetq.remoting.netty.port=$hornetq_remoting_netty_port -Dhornetq.remoting.netty.batch.port=$hornetq_remoting_netty_batch_port -Dhornetq.remoting.netty.host=$hornetq_remoting_netty_host"
+	export JBOSS_BACK_LOG=$RUN_DIR/$server.out
+	runuser -m $USER -c "$RUN_DIR/run.sh -b $host -c $server -Djboss.service.binding.set=$port &"
+	sleep 2
+	return 0
+}
+
+stop() {
+        echo -n $"Stopping $prog: "
+	runuser -m $USER -c "$RUN_DIR/shutdown.sh -s jnp://$host:1399"
+	return 0
+}
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $prog {start|stop|restart}"
+        exit 1
+esac
+
+exit 0
+
+
+
+
+
+
+
+$RUN_DIR/run.sh -b 0.0.0.0 &
+sleep 2
+tail -f $RUN_DIR/../jboss.out
+
+$RUN_DIR/shutdown.sh -S
+tail -f $RUN_DIR/../jboss.out
+
